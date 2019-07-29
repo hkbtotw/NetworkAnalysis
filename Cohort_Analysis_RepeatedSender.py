@@ -1,153 +1,84 @@
 import pandas as pd
-import networkx as nx
+import numpy as np
 import matplotlib.pyplot as plt
-import pyodbc
-import datetime
+import matplotlib as mpl
 from datetime import datetime
 
-
-# Option 1 : Read in data from Database
-
-conn = pyodbc.connect('Driver={SQL Server};'
-                        #'Server=SBNDCBIDSCIDB01;'
-                        'Server=SBNDCTBVPOINT02;'
-                        #'Database=TBL_ADHOC;'
-                        'Database=TBPoint;'
-                        'Trusted_Connection=yes;')
+pd.set_option('max_columns',50)
+mpl.rcParams['lines.linewidth']=2
 
 
-
-#sql="select cast   from [dbo].[Transaction]"
-sql="SELECT cast(A.[Id] as varchar) as [Id],"\
-      " A.[Timestamp],"\
-      " concat('L',A.[Sender]) as L_Sender,"\
-      " concat('L',A.[Receiver]) as L_Receiver,"\
-      " cast(A.[Sender] as varchar) as [Sender],"\
-      " cast(A.[Receiver] as varchar) as [Receiver],"\
-      " A.[Amount], A.[ProjectId],"\
-      " A.[ReasonId]"\
-      "  from [dbo].[Transaction] A  "\
-      "where "\
-      "A.Sender not like 'TBTEMP%'  "\
-      "and A.Sender <> '1'"\
-      "and A.Receiver not like 'TBTEMP%' "\
-      "and A.ProjectId not in "\
-	   "  (select [Id] from [TBPoint].[dbo].[Project]"\
-	   "	where [Id]  in (56) or AssignTo  like 'TBTEMP%' ) "\
-    "order by Id "
-
-
-FCT_TRNS = pd.read_sql(sql,conn)
-conn.close()
-
-FCT_TRNS['Id']=FCT_TRNS['Id'].astype(str)
-FCT_TRNS['Sender']=FCT_TRNS['Sender'].astype(str)
-FCT_TRNS['Receiver']=FCT_TRNS['Receiver'].astype(str)
-#FCT_TRNS['Timestamp']=FCT_TRNS['Timestamp'].astype(str)
-
-print(FCT_TRNS)
-df1=FCT_TRNS
-
-
-#--------------------------------------------------------
-# Option 2 : Read data in from spreadsheet
-
-#xls = pd.ExcelFile(r'C:\Users\70018928\Documents\Project 2019\Ad-hoc\Point System\TBPoint_Transaction_TC.xlsx')
-
-#-----------------------------------------------------------
-#Get Transaction data to create Graph
-
-#df1 = pd.read_excel(xls, 'Transaction_UD')
-
-
-#======================================================================
-
-df= df1[['Id','L_Sender','L_Receiver', 'Amount', 'ProjectId', 'ReasonId', 'Timestamp']].copy()
-print('  df :  ',df1.info())
-#df['Timestamp']=df.Timestamp.apply(lambda x: x.strftime("%Y-%m-%d %H:%M:%S"))
-
+df1=pd.read_excel('TBPoint_Transaction_TC.xlsx',  sheet_name='Transaction_UA')
+df= df1[['Id','L_Sender','Amount', 'ProjectId', 'Timestamp']].copy()
 df['Timestamp'] =  pd.to_datetime(df['Timestamp'], format="%Y-%m-%d %H:%M:%S")
-print( '  df : ', df, '  => ', type(df['Timestamp'][0]))
-
 weeklist=[]
 for n in df['Timestamp'].tolist():
     weeklist.append(datetime.strftime(n,'%W'))
 
 df_dummy=pd.DataFrame(weeklist)
-df_dummy.columns=['weeklist']
+df_dummy.columns=['week_no']
 
-df=pd.concat([df,df_dummy['weeklist']],axis=1)
+df=pd.concat([df,df_dummy['week_no']],axis=1)
 
-weeklist=list(set(weeklist))
+df.set_index('L_Sender', inplace=True)
 
-wkl1=['27']
-wkl2=['28']
-wkl3=['29']
-print(' WL : ', weeklist, ' => ',wkl1,' :: ',wkl2,' :::: ',len(weeklist))
+df['CohortGroup'] = df.groupby(level=0)['week_no'].min()
+df.reset_index(inplace=True)
+grouped = df.groupby(['CohortGroup', 'week_no'])
 
-#Joint list to find Sender list
-FList=df['L_Sender'].tolist()
-D_Sender = list(set(FList))
-print(' F : ',len(FList), '  =>  ',' D : ',len(D_Sender))
 
-Cohort1=[]
-dummy=[]
-count=0
-#D_Sender=['L11000236']
-for n in D_Sender:
-    #print(' Sender : ', n)
-    dummy=[]
-    count=0
-    for k in wkl1:
-          for i,j in df.iterrows():
-              #print(' n : ', n, ' :: ', j['L_Sender'], ' => ',k,'----',j['weeklist'],' ::: ',count)
-              if (n==j['L_Sender']) and (k==j['weeklist']):
-                 count=count+1
-                #print(' count : ',count,' =>', n)
-    if count>1:       
-        Cohort1.append(n)    
-       
+# count the unique users, orders, and total revenue per Group + Period
+cohorts = grouped.agg({'L_Sender': pd.Series.nunique})
 
-print(Cohort1, ', len : ', len(Cohort1))
+# make the column names more meaningful
+cohorts.rename(columns={'L_Sender': 'No_Sender'}, inplace=True)
 
-#Search number left on week 2
-Cohort1_wk2=[]
-dummy=[]
-count=0
-#D_Sender=['L11000236']
-for n in Cohort1:
-    #print(' Sender : ', n)
-    dummy=[]
-    count=0
-    for k in wkl2:
-          for i,j in df.iterrows():
-              #print(' n : ', n, ' :: ', j['L_Sender'], ' => ',k,'----',j['weeklist'],' ::: ',count)
-              if (n==j['L_Sender']) and (k==j['weeklist']):
-                 count=count+1
-                #print(' count : ',count,' =>', n)
-    if count>1:       
-        Cohort1_wk2.append(n)    
-       
+#cohorts.tail()
+#df.head()
+def cohort_period(df):
+    """
+    Creates a `CohortPeriod` column, which is the Nth period based on the user's first purchase.
+    
+    Example
+    -------
+    Say you want to get the 3rd month for every user:
+        df.sort(['UserId', 'OrderTime', inplace=True)
+        df = df.groupby('UserId').apply(cohort_period)
+        df[df.CohortPeriod == 3]
+    """
+    df['CohortPeriod'] = np.arange(len(df)) + 1
+    return df
 
-print(Cohort1_wk2, ', len : ', len(Cohort1_wk2))
+cohorts = cohorts.groupby(level=0).apply(cohort_period)
 
-#Search number left on week 2
-Cohort1_wk3=[]
-dummy=[]
-count=0
-#D_Sender=['L11000236']
-for n in Cohort1_wk2:
-    #print(' Sender : ', n)
-    dummy=[]
-    count=0
-    for k in wkl3:
-          for i,j in df.iterrows():
-              #print(' n : ', n, ' :: ', j['L_Sender'], ' => ',k,'----',j['weeklist'],' ::: ',count)
-              if (n==j['L_Sender']) and (k==j['weeklist']):
-                 count=count+1
-                #print(' count : ',count,' =>', n)
-    if count>1:       
-        Cohort1_wk3.append(n)    
-       
+# reindex the DataFrame
+cohorts.reset_index(inplace=True)
+cohorts.set_index(['CohortGroup', 'CohortPeriod'], inplace=True)
 
-print(Cohort1_wk3, ', len : ', len(Cohort1_wk3))
+cohorts.head()
+
+# create a Series holding the total size of each CohortGroup
+cohort_group_size = cohorts['No_Sender'].groupby(level=0).first()
+cohort_group_size.head()
+
+
+cohorts['No_Sender'].unstack(0).head()
+user_retention = cohorts['No_Sender'].unstack(0).divide(cohort_group_size, axis=1)
+user_retention.head(10)
+user_retention[['27', '28', '29']].plot(figsize=(10,5))
+plt.title('Cohorts : Repeated Sender')
+plt.xticks(np.arange(1, 12.1, 1))
+plt.xlim(1, 12)
+plt.ylabel('% of Repeated Sender')
+
+
+import seaborn as sns
+sns.set(style='white')
+
+plt.figure(figsize=(12, 8))
+plt.title('Cohorts: Repeated Sender')
+sns.heatmap(user_retention.T, mask=user_retention.T.isnull(), annot=True, fmt='.0%')
+
+plt.show()
+
+print(' --- Complete -----')
