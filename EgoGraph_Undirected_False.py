@@ -55,7 +55,6 @@ df1=FCT_TRNS
 df1=pd.read_excel(r'C:\Users\70018928\Documents\Project 2019\Ad-hoc\Point System\TBPoint_Transaction_TC.xlsx',  sheet_name='Transaction_UB')
 
 
-
 #------------------------------------------------------------------------------
 
 df2_Transaction = df1[['L_Sender','L_Receiver', 'Amount', 'ProjectId', 'ReasonId', 'Timestamp']].copy()
@@ -137,9 +136,6 @@ LEV5=[]
 LEV6=[]
 LEV7=[]
 
-nodes_1=[]
-nodes_2=[]
-
 #for i in range(1,NoCommunity+1):
 i=1
 if i==1 :
@@ -198,16 +194,8 @@ if i==1 :
         LEV7.clear()
         #print(' D4 : ', D4)
         LEV1=LEV1+ list(n for n,v in D4 if v['radius'] == 1) 
-        LEV2=LEV2+ list(n for n,v in D4 if v['radius'] == 2)
-        LEV3=LEV3+ list(n for n,v in D4 if v['radius'] == 3)
-        LEV4=LEV4+ list(n for n,v in D4 if v['radius'] == 4)
-        LEV5=LEV5+ list(n for n,v in D4 if v['radius'] == 5)
-        LEV6=LEV6+ list(n for n,v in D4 if v['radius'] == 6)
-        LEV7=LEV7+ list(n for n,v in D4 if v['radius'] == 7)
         #print(' LEV :: ', list(LEV1), ' , ', list(LEV2))
         gnew=nx.DiGraph()
-
-
 
 
         # Calculate Forward path
@@ -249,8 +237,8 @@ if i==1 :
             #print('  edge : ',gnew.edges.data())
         #D6=list(gnew.edges.data())
         #print('  D6  :   ', D6)
-        '''      
-
+             
+        LEV4=LEV3+ list(n for n,v in D4 if v['radius'] == 5 )
         for g in LEV4:
             for f in LEV5:
                 #[print(' g: ',g,', f: ',f,' :: e:',u,':',v,':',w) for u,v,w in g1.edges.data() ]
@@ -261,7 +249,7 @@ if i==1 :
 
 
 
-        
+        LEV5=LEV4+ list(n for n,v in D4 if v['radius'] == 6 )
         for g in LEV5:
             for f in LEV6:
                 #[print(' g: ',g,', f: ',f,' :: e:',u,':',v,':',w) for u,v,w in g1.edges.data() ]
@@ -269,31 +257,24 @@ if i==1 :
             #print('  edge : ',gnew.edges.data())
         #D6=list(gnew.edges.data())
         #print('  D6  :   ', D6)
+        
+        LEV6=LEV5+ list(n for n,v in D4 if v['radius'] == 7 )
         for g in LEV6:
             for f in LEV7:
                 #[print(' g: ',g,', f: ',f,' :: e:',u,':',v,':',w) for u,v,w in g1.edges.data() ]
                 [gnew.add_edge(g,f,LB=n,radius=7, weight=w) for u,v,w in g1.edges.data() if(g==u) and (f==v)]     
             #print('  edge : ',gnew.edges.data())
-        '''
+    
 
 
-        D6=list(gnew.edges.data())
-
-
-       
-
-
+        D6=list(gnew.edges.data())     
         #print('  D6  :   ', D6)
-
-
-
 
         D7=D7+D6
         
         D5=D5+D4  
         D2=D2+D3
     
-
 
 dego=pd.DataFrame(D7)
 dego.columns=['S','R','LB']
