@@ -166,7 +166,7 @@ if i==1 :
         D6.clear()
         #Search with nx.ego_graph with radius=5 indicating the level of network depth
         #D3=list(nx.ego_graph(g, n, radius=1, undirected=True).edges(data=True))
-        D3=list(nx.ego_graph(GM, n, radius=4, undirected=False).edges(data=True))
+        D3=list(nx.ego_graph(GM, n, radius=7, undirected=False).edges(data=True))
         g1.add_edges_from(D3, label=n, group=i)
         g2.add_edges_from(D3, label=n, group=i)
         D3=list(g1.edges.data())
@@ -194,6 +194,12 @@ if i==1 :
         LEV7.clear()
         #print(' D4 : ', D4)
         LEV1=LEV1+ list(n for n,v in D4 if v['radius'] == 1) 
+        LEV2=LEV2+ list(n for n,v in D4 if v['radius'] == 2)
+        LEV3=LEV3+ list(n for n,v in D4 if v['radius'] == 3)
+        LEV4=LEV4+ list(n for n,v in D4 if v['radius'] == 4)
+        LEV5=LEV5+ list(n for n,v in D4 if v['radius'] == 5)
+        LEV6=LEV6+ list(n for n,v in D4 if v['radius'] == 6)
+        LEV7=LEV7+ list(n for n,v in D4 if v['radius'] == 7)
         #print(' LEV :: ', list(LEV1), ' , ', list(LEV2))
         gnew=nx.DiGraph()
 
