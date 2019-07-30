@@ -8,7 +8,7 @@ pd.set_option('max_columns',50)
 mpl.rcParams['lines.linewidth']=2
 
 
-df1=pd.read_excel('TBPoint_Transaction_TC.xlsx',  sheet_name='Transaction_UA')
+df1=pd.read_excel(r'C:\Users\70018928\Documents\Project 2019\Ad-hoc\Point System\TBPoint_Transaction_TC.xlsx',  sheet_name='Transaction_UA')
 df= df1[['Id','L_Sender','Amount', 'ProjectId', 'Timestamp']].copy()
 df['Timestamp'] =  pd.to_datetime(df['Timestamp'], format="%Y-%m-%d %H:%M:%S")
 weeklist=[]
