@@ -54,7 +54,7 @@ for r in EntryList:
     #print(' Dummy : ',lowered)
     lowered=" ".join(lowered)
     #Dummy=list(thai_tokens(lowered, engine='newmm'))
-    Dummy=deepcut.tokenize(lowered,custom_dict=['ไทยเบฟ'])
+    Dummy=deepcut.tokenize(lowered,custom_dict=['ไทยเบฟ','ผสานพลัง'])
     #print(' Dummy 2 : ',Dummy)
     Outcome.append(Dummy)
 
