@@ -20,7 +20,7 @@ ThaiWord=list(thaisw.words('thai'))
 #print(' Thaiwords : ', ThaiWord)
 EngWord=list(set(engsw.words('english')))
 #print(' ew : ',EngWord, ' : ', type(EngWord))
-Morewords=['การ','การทำงาน','ทำงาน','เสมอ','krub','Test', 'nan', ' ','test','.',',']
+Morewords=[u'การ',u'การทำงาน',u'ทำงาน',u'เสมอ',u'krub',u'Test', u'nan', u' ',u'test',u'.',u',']
 All_Stop_Word=ThaiWord_Deepcut+ThaiWord+EngWord+Morewords
 #print(' ALL : ',All_Stop_Word)
 
@@ -54,7 +54,7 @@ for r in EntryList:
     #print(' Dummy : ',lowered)
     lowered=" ".join(lowered)
     #Dummy=list(thai_tokens(lowered, engine='newmm'))
-    Dummy=deepcut.tokenize(lowered,custom_dict=['ไทยเบฟ','ผสานพลัง'])
+    Dummy=deepcut.tokenize(lowered,custom_dict=[u'ไทยเบฟ',u'ผสานพลัง'])
     #print(' Dummy 2 : ',Dummy)
     Outcome.append(Dummy)
 
