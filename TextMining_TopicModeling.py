@@ -24,7 +24,7 @@ import pprint
 #E1=[['One การ Followติดตามงานคณะอนุกรรมการฯ subcommittee  อย่างสมํ่าเสมอ always'],['I am actively not for sure, You Held me Hand and you looked at my active puppy.']]
 
 
-xls = pd.ExcelFile(r'C:\Users\70018928\Documents\Project 2019\Ad-hoc\Point System\TBPoint_Transaction_TC.xlsx')
+xls = pd.ExcelFile(r'C:\Users\kira\Downloads\TBPoint_Transaction_TC.xlsx')
 
 
 df1 = pd.read_excel(xls, 'Transaction_NLP')
