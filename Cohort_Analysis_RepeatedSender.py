@@ -2,13 +2,15 @@ import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
 import matplotlib as mpl
+from matplotlib.pyplot import yticks
 from datetime import datetime
 
 pd.set_option('max_columns',50)
 mpl.rcParams['lines.linewidth']=2
 
 
-df1=pd.read_excel('TBPoint_Transaction_TC.xlsx',  sheet_name='Transaction_UA')
+
+df1=pd.read_excel(r'C:\Users\70018928\Documents\Project 2019\Ad-hoc\Point System\TBPoint_Transaction_TC.xlsx',  sheet_name='Transaction_UA')
 df= df1[['Id','L_Sender','Amount', 'ProjectId', 'Timestamp']].copy()
 df['Timestamp'] =  pd.to_datetime(df['Timestamp'], format="%Y-%m-%d %H:%M:%S")
 weeklist=[]
@@ -66,19 +68,32 @@ cohorts['No_Sender'].unstack(0).head()
 user_retention = cohorts['No_Sender'].unstack(0).divide(cohort_group_size, axis=1)
 user_retention.head(10)
 user_retention[['27', '28', '29']].plot(figsize=(10,5))
-plt.title('Cohorts : Repeated Sender')
-plt.xticks(np.arange(1, 12.1, 1))
-plt.xlim(1, 12)
-plt.ylabel('% of Repeated Sender')
+plt.title('Survival Analysis of Repeated Senders')
+plt.xticks(np.arange(1, 6.1, 1))
+plt.xlim(1, 6)
+plt.ylabel('Proportion of Repeated Sender')
+L=plt.legend()
+L.get_texts()[0].set_text('1st week')
+L.get_texts()[1].set_text('2nd week')
+L.get_texts()[2].set_text('3rd week');
 
 
 import seaborn as sns
 sns.set(style='white')
 
 plt.figure(figsize=(12, 8))
-plt.title('Cohorts: Repeated Sender')
-sns.heatmap(user_retention.T, mask=user_retention.T.isnull(), annot=True, fmt='.0%')
+plt.title('Behavior of Repeated Senders')
 
-plt.show()
+yticklabels = range(1, 4, 1)
+# the index position of the tick labels
+yticks = []
+count=1
+for label in yticklabels:
+    idx_pos = count
+    count=count+1
+    yticks.append(idx_pos)
 
-print(' --- Complete -----')
+
+ax1=sns.heatmap(user_retention.T, mask=user_retention.T.isnull(), annot=True, fmt='.0%',yticklabels=yticklabels)
+ax1.set_yticks(yticks,  "center")
+plt.show();
